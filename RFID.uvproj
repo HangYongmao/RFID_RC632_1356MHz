@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>RFID</TargetName>
+      <TargetName>13.56MHz</TargetName>
       <ToolsetNumber>0x0</ToolsetNumber>
       <ToolsetName>MCS-51</ToolsetName>
       <uAC6>0</uAC6>
@@ -440,6 +440,21 @@
               <FileName>ISO14443A.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Src\ISO14443A.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>ISO14443B</GroupName>
+          <Files>
+            <File>
+              <FileName>ISO14443B.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Src\ISO14443B.c</FilePath>
+            </File>
+            <File>
+              <FileName>ISO14443B.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Src\ISO14443B.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,5 +1,7 @@
 #include "clrc632.h"
 #include "ISO14443A.h"
+#include "ISO14443B.h"
+#include "ISO15693.h"
 #include "PUBLIC.h"
 
 #define FSD 64
@@ -21,9 +23,9 @@ char PcdReset()
 	unsigned int i = 3000;
 
 	RC632_CE = 0;
-	RC632_RST = 1;
-	DelayMs(50);
 	RC632_RST = 0;
+	DelayMs(50);
+	RC632_RST = 1;
 	DelayMs(5);
 	RC632_RST = 0;
 	RC632_CE = 0;
@@ -67,7 +69,6 @@ char PcdReset()
 //////////////////////////////////////////////////////////////////////
 char PcdConfigISOType(unsigned char type)
 {
-
 	if (type == 'A')                    //ISO14443_A
 	{
 		ClearBitMask(RegControl, 0x08);
@@ -111,30 +112,29 @@ char PcdConfigISOType(unsigned char type)
 		PcdSetTmo(106);
 		DelayMs(1);
 		PcdAntennaOn();
-
 	}
 	else if (type == 'B')
 	{
 		ClearBitMask(RegControl, 0x08);
 
 		WriteRawRC(RegClockQControl, 0x0);
-		WriteRawRC(RegClockQControl, 0x40);      	//0x3f, Q时钟控制
+		WriteRawRC(RegClockQControl, 0x3F);      	//0x3f, Q时钟控制0X40
 		Delay_50us(2);
 		ClearBitMask(RegClockQControl, 0x40);
 
 		WriteRawRC(RegTxControl, 0x4b);         		 //0x4b, 13.56MHz
-		WriteRawRC(RegCwConductance, 0x17);		 	 //0x3f, 设置输出驱动的电导系数
-		WriteRawRC(RegModConductance, 0x06);	 	     //0x06, 幅移键控ASk 12%       
+		WriteRawRC(RegCwConductance, 0x3F);		 	 //0x3f, 设置输出驱动的电导系数0X17
+		WriteRawRC(RegModConductance, 0x06);	 	     //0x06, 幅移键控ASk 12%
 		WriteRawRC(RegCoderControl, 0x20);             //0x20, TypeB,波特率106kbps, NRZ编码
 		WriteRawRC(RegModWidth, 0x13);
 		WriteRawRC(RegModWidthSOF, 0x3F);
-		WriteRawRC(RegTypeBFraming, 0x3B);             //0x23, 定义ISO14443B帧格式
+		WriteRawRC(RegTypeBFraming, 0x23);             //0x23, 定义ISO14443B帧格式0X3b
 
 		WriteRawRC(RegRxControl1, 0x73);
 		WriteRawRC(RegDecoderControl, 0x19);
 		WriteRawRC(RegBitPhase, 0xAD);
-		WriteRawRC(RegRxThreshold, 0x88);              //0x44, 可接收的最小信号强度
-		WriteRawRC(RegBPSKDemControl, 0x7E);           //0x3e, 忽略EOF,打开高通滤波
+		WriteRawRC(RegRxThreshold, 0x44);              //0x44, 可接收的最小信号强度0X88
+		WriteRawRC(RegBPSKDemControl, 0x3E);           //0x3e, 忽略EOF,打开高通滤波0X7E
 		WriteRawRC(RegRxControl2, 0x01);
 
 		WriteRawRC(RegRxWait, 0x06);                  //0x06, 设置接收延时
@@ -291,7 +291,6 @@ char PcdConfigISOType(unsigned char type)
 /////////////////////////////////////////////////////////////////////
 
 //SPI接口
-
 unsigned char ReadRawRC(unsigned char Address)
 {
 	unsigned char i, ucAddr;
@@ -326,7 +325,6 @@ unsigned char ReadRawRC(unsigned char Address)
 //input:Address=寄存器地址
 //      value=要写入的值
 /////////////////////////////////////////////////////////////////////
-
 
 //SPI接口
 void WriteRawRC(unsigned char Address, unsigned char value)
@@ -628,11 +626,140 @@ char PcdComTransceive(struct TranSciveBuffer *pi)
 		WriteRawRC(RegCommand, PCD_IDLE);
 	}
 
-
-
 	return status;
 }
 
+
+/////////////////////////////////////////////////////////////////////
+//  通过RC632和ISO15693卡通讯
+//input: pi->MfCommand = RC632命令字
+//       pi->MfLength  = 发送的数据长度
+//       pi->MfData[]  = 发送数据
+//output:status        = 错误字
+//       pi->MfLength  = 接收的数据BIT长度
+//       pi->MfData[]  = 接收数据
+/////////////////////////////////////////////////////////////////////
+char ISO15693_Transceive(struct TranSciveBuffer *pi)
+{
+	bit recebyte = 0;
+	char status = MI_COM_ERR;
+	unsigned char n, waitFor, TimerReload;
+	unsigned int i;
+	switch (pi->MfCommand)
+	{
+	case PCD_TRANSMIT:
+		waitFor = 0x10;
+		break;
+	default:
+		waitFor = 0x28;
+		recebyte = 1;
+		break;
+	}
+	switch (pi->MfData[1])
+	{
+	case ISO15693_STAY_QUIET:
+		TimerReload = 0x04;    // 2048/fc => 0x01 = 151 us 
+		break;
+	case ISO15693_SELECT:
+	case ISO15693_RESET_TO_READY:
+		TimerReload = 0x0F;    // 2048/fc => 0x01 = 151 us 
+		break;
+	case ISO15693_LOCK_AFI:
+	case ISO15693_LOCK_DSFID:
+	case ISO15693_LOCK_BLOCK:
+	case ISO15693_WRITE_SINGLE_BLOCK:
+	case ISO15693_WRITE_MULTIPLE_BLOCKS:
+	case ISO15693_WRITE_AFI:
+	case ISO15693_WRITE_DSFID:
+		TimerReload = 0x29;    // 2048/fc => 0x01 = 151 us 
+		break;
+	case ISO15693_READ_SINGLE_BLOCK:
+		TimerReload = 0x17;    // 2048/fc => 0x01 = 151 us 
+		break;
+	case ISO15693_INVENTORY:
+		TimerReload = 0x1F;    // 2048/fc => 0x01 = 151 us 
+		break;
+	case ISO15693_GET_SYSTEM_INFO:
+		TimerReload = 0x25;    // 2048/fc => 0x01 = 151 us 
+		break;
+	case ISO15693_GET_MULTIPLE_BLOCK_SECURITY:
+		TimerReload = 0x40;//(0x04+(cmd[cmdlen-1]+0x01))*0x02 + 0x04 + 0x01;    // 2048/fc => 0x01 = 151 us 
+		break;														  // (0x04 + cmd[cmdlen - 1])*0x02 -> Time for all receivedBytes, 0x04 -> Time bevore and after response, 0x01 additional
+	case ISO15693_READ_MULTIPLE_BLOCKS:
+		TimerReload = 0x40;//(0x04+0x04*(cmd[cmdlen-1]+0x01))*0x02 + 0x04 + 0x01;    // 2048/fc => 0x01 = 151 us 
+		break;
+	default:
+		TimerReload = 0x86; // 2048/fc => 0x01 = 151 us 
+		break;
+	}
+
+	WriteRawRC(RegPage, 0x00);
+	WriteRawRC(RegFIFOLevel, 0x1A);
+
+	SetBitMask(RegChannelRedundancy, 0x04);
+	WriteRawRC(RegTimerReload, TimerReload);
+	WriteRawRC(RegTimerControl, 0x06);
+
+	SetBitMask(RegControl, 0x01);
+
+	WriteRawRC(RegCommand, 0x00);
+	WriteRawRC(RegInterruptEn, 0x81);
+	WriteRawRC(RegInterruptRq, 0x3F);
+	WriteRawRC(RegInterruptEn, 0x38 | 0x80);
+
+	for (i = 0; i<pi->MfLength; i++)
+	{
+		WriteRawRC(RegFIFOData, pi->MfData[i]);
+	}
+
+	WriteRawRC(RegCommand, PCD_TRANSCEIVE);	  // start to send command to label
+
+	i = 0x3000;
+	do
+	{
+		n = ReadRawRC(RegInterruptRq);
+		i--;
+	} while ((i != 0) && !(n&waitFor));
+
+	if (!recebyte)
+	{
+		if (n & 0x10)
+		{
+			status = MI_OK;
+		}
+		WriteRawRC(RegInterruptEn, 0x10);
+		WriteRawRC(RegTimerControl, 0x00);
+		WriteRawRC(RegCommand, PCD_IDLE);
+		ClearBitMask(RegCoderControl, 0x80);
+		return status;
+	}
+	else
+	{
+		if ((i != 0) && (n & 0x08))
+		{
+			if (!(ReadRawRC(RegErrorFlag) & 0x0C))
+			{
+				n = ReadRawRC(RegFIFOLength);
+				pi->MfLength = n * 8;
+				for (i = 0; i<n; i++)
+				{
+					pi->MfData[i] = ReadRawRC(RegFIFOData);
+				}
+				if (pi->MfData[0] == 0)
+				{
+					status = MI_OK;
+				}
+			}
+		}
+
+		WriteRawRC(RegInterruptEn, 0x10);
+		WriteRawRC(RegTimerControl, 0x00);
+		WriteRawRC(RegCommand, PCD_IDLE);
+		ClearBitMask(RegCoderControl, 0x80);
+
+		return status;
+	}
+}
 
 /////////////////////////////////////////////////////////////////////
 //开启天线  
@@ -651,13 +778,4 @@ char PcdAntennaOn()
 		SetBitMask(RegTxControl, 0x03);
 		return MI_OK;
 	}
-}
-
-/////////////////////////////////////////////////////////////////////
-//关闭天线
-/////////////////////////////////////////////////////////////////////
-char PcdAntennaOff()
-{
-	ClearBitMask(RegTxControl, 0x03);
-	return MI_OK;
 }

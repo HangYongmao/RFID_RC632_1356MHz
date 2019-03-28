@@ -22,9 +22,6 @@ extern char PcdWriteE2(unsigned int startaddr, unsigned char length, unsigned ch
 //开启RC632天线发射 
 char PcdAntennaOn();
 
-//关闭RC632天线发射                                         
-char PcdAntennaOff();
-
 //写RC632寄存器
 void WriteRawRC(unsigned char Address, unsigned char value);
 

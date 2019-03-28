@@ -24,6 +24,5 @@
 /////////////////////////////////////////////////////////////////////
 char PcdRequest(unsigned char req_code, unsigned char *pTagType);
 char PcdAnticoll(unsigned char *pSnr);
-char PcdSelect(unsigned char *pSnr, unsigned char *pSize);
 
 #endif

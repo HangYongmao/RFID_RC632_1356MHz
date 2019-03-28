@@ -6,8 +6,13 @@
 #define uchar unsigned char
 #define uint  unsigned int
 
+//指定PCD接收缓冲值
+#ifndef FSDI
+#define FSDI 4
+#endif
+
 // 端口定义
-sbit RC632_CE   = P2 ^ 7;   //RC500片选
+sbit RC632_CE   = P1 ^ 7;   //RC500片选
 sbit RC632_RST  = P3 ^ 3;   //RC500ALE
 sbit RC632_SCK  = P1 ^ 0;   //时钟信号
 sbit RC632_MOSI = P1 ^ 1;   //输入数据
