@@ -6,6 +6,8 @@
 #include "ISO15693.h"
 #include "string.h"
 #include "CLRC632.h"
+#include "OLED.h"
+#include "TIMER.h"
 
 unsigned char code hardmodel[12]  = {"SL601F-0512"};
 
@@ -58,6 +60,8 @@ void ComGetHardModel()
 {
 	memcpy(&g_cReceBuf[0], &hardmodel[0], sizeof(hardmodel));
 	Puts_to_SerialPort(hardmodel);
+    
+    OLED_ShowString(0, 6, hardmodel);
 }
 
 //............................................/
@@ -116,6 +120,17 @@ void ComAnticoll()
         Puts_to_SerialPort("ISO14443A:");
         Puts_to_SerialPort(tempData);
         Puts_to_SerialPort("\r\n");
+            
+        // 清空原有数据
+        OLED_ShowString(0, 0, "          ");
+        OLED_ShowString(0, 2, "                    ");
+        
+        OLED_ShowString(0, 0, "ISO14443A:");
+        OLED_ShowString(0, 2, tempData);
+        
+        BEEP = 0;
+        DelayMs(100);
+        BEEP = 1;
 	}
 	else
 	{
@@ -164,6 +179,17 @@ void ComTypeBRst()
             Puts_to_SerialPort("ISO14443B:");
             Puts_to_SerialPort(tempData);
             Puts_to_SerialPort("\r\n");
+            
+            // 清空原有数据
+            OLED_ShowString(0, 0, "          ");
+            OLED_ShowString(0, 2, "                    ");
+            
+            OLED_ShowString(0, 0, "ISO14443B:");
+            OLED_ShowString(0, 2, tempData);
+            
+            BEEP = 0;
+            DelayMs(100);
+            BEEP = 1;
         }
 	}
 	else
@@ -204,6 +230,17 @@ void ComISO15693_Inventory16()
             Puts_to_SerialPort("ISO15693:");
             Puts_to_SerialPort(tempData);
             Puts_to_SerialPort("\r\n");
+            
+            // 清空原有数据
+            OLED_ShowString(0, 0, "          ");
+            OLED_ShowString(0, 2, "                    ");
+            
+            OLED_ShowString(0, 0, "ISO15693: ");
+            OLED_ShowString(0, 2, tempData);
+            
+            BEEP = 0;
+            DelayMs(100);
+            BEEP = 1;
         }
 	}
 	else
@@ -244,6 +281,17 @@ void ComISO15693_Inventory()
             Puts_to_SerialPort("ISO15693:");
             Puts_to_SerialPort(tempData);
             Puts_to_SerialPort("\r\n");
+            
+            // 清空原有数据
+            OLED_ShowString(0, 0, "          ");
+            OLED_ShowString(0, 2, "                    ");
+            
+            OLED_ShowString(0, 0, "ISO15693: ");
+            OLED_ShowString(0, 2, tempData);
+            
+            BEEP = 0;
+            DelayMs(100);
+            BEEP = 1;
         }
 	}
 	else
@@ -256,11 +304,19 @@ void ComISO15693_Inventory()
 void main()
 {
 	InitUART();
+    OLED_Init();
+    InitTimer0();
+    
+    showPower();
+    
+    //while(1);
+    
     Rc632Ready();
     
     PcdConfigISOType('A');
     
     ComGetHardModel();
+    
     while (1)
     {
         // A卡
@@ -269,20 +325,20 @@ void main()
         g_cReceBuf[6]=0x52;
         ComRequestA();
         ComAnticoll();
-        DelayMs(100);
+        DelayMs(10);
         
         // B卡
         g_cReceBuf[6]='B';
         ComM632PcdConfigISOType();
         g_cReceBuf[6]=0x01;
         ComTypeBRst();
-        DelayMs(100);
+        DelayMs(10);
         
         // ISO15693
         g_cReceBuf[6]='l';
         ComM632PcdConfigISOType();
         ComISO15693_Inventory16();
         ComISO15693_Inventory();
-        DelayMs(100);
+        DelayMs(10);
     }
 }

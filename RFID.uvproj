@@ -384,6 +384,26 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>OLED</GroupName>
+          <Files>
+            <File>
+              <FileName>OLED.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Src\OLED.c</FilePath>
+            </File>
+            <File>
+              <FileName>OLED.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Src\OLED.h</FilePath>
+            </File>
+            <File>
+              <FileName>OLEDFONT.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Src\OLEDFONT.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>UART</GroupName>
           <Files>
             <File>
@@ -470,6 +490,21 @@
               <FileName>ISO15693.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Src\ISO15693.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>TIMER</GroupName>
+          <Files>
+            <File>
+              <FileName>TIMER.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Src\TIMER.c</FilePath>
+            </File>
+            <File>
+              <FileName>TIMER.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Src\TIMER.h</FilePath>
             </File>
           </Files>
         </Group>
