@@ -105,10 +105,6 @@ DItemRevisionGUID=
 GenerateClassCluster=0
 DocumentUniqueId=VXBCOVFR
 
-[GeneratedDocument1]
-DocumentPath=Project Outputs for RFID_RC632\Design Rule Check - RFID_RC632.html
-DItemRevisionGUID=
-
 [Configuration1]
 Name=Sources
 ParameterCount=0
