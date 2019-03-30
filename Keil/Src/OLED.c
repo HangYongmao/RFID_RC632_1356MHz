@@ -170,3 +170,12 @@ void showPower()
 	OLED_ShowCHinese(96, 0, 0, PowerFont);
 	OLED_ShowCHinese(112, 0, 1, PowerFont);
 }
+
+void OLED_ShowHardCodeChinese()
+{
+    OLED_ShowCHinese(0, 2, 0, HardCode);
+    OLED_ShowCHinese(16, 2, 1, HardCode);
+    OLED_ShowCHinese(32, 2, 2, HardCode);
+    OLED_ShowCHinese(48, 2, 3, HardCode);
+    OLED_ShowCHinese(64, 2, 4, HardCode);
+}

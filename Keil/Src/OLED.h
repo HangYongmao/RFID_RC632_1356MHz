@@ -44,4 +44,6 @@ void OLED_ShowString(u8 x, u8 y, u8 *p);
 void OLED_Set_Pos(unsigned char x, unsigned char y);
 void OLED_ShowCHinese(u8 x, u8 y, u8 no, u8 Hzk[][16]);
 
+void OLED_ShowHardCodeChinese();
+
 #endif
