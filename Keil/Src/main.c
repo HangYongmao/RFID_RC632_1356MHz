@@ -9,13 +9,15 @@
 #include "OLED.h"
 #include "TIMER.h"
 
-unsigned char code hardmodel[12]  = {"SL601F-05123"};    // 硬件版本号
-unsigned char lastCardCode[32]; // 上一次读取的卡号
+unsigned char code hardmodel[12]  = {"SL601F-0512"};    // 硬件版本号
+unsigned char lastCardCode[32]  = {"SL601F-0512"}; // 上一次读取的卡号
 
-bit g_bRc632Ok;                     //RC632复位正常标志
+bit g_bRc632Ok;     // RC632复位正常标志
+bit clsFlag = 0;    // 清屏标志
+extern uint TimerCount;
 unsigned char g_cFWI;
-unsigned char data g_cSNR[4];       //M1卡序列号
-unsigned char idata g_cReceBuf[64]; //和上位机通讯时的缓冲区
+unsigned char data g_cSNR[4];       // M1卡序列号
+unsigned char idata g_cReceBuf[64]; // 和上位机通讯时的缓冲区
 
 /////////////////////////////////////////////////////////////////////
 //初始化RC632
@@ -102,6 +104,11 @@ void ComAnticoll()
     unsigned char tempData[32] = {0};   // 存贮转化后的卡号
 	if (MI_OK == PcdAnticoll(&g_cSNR))
 	{
+        if (g_cSNR[0] == 0)
+        {
+            OLED_ShowString(0, 0, "Error:");
+            return;
+        }
 		// Puts_to_SerialPort("Success ComAnticoll...");
         // 将十六进制数据转化为字符串
         for (i=0; i<4; i++)
@@ -129,7 +136,8 @@ void ComAnticoll()
                 
             // 清空原有数据
             OLED_ShowString(0, 0, "          ");
-            OLED_ShowString(0, 2, "                    ");
+            OLED_ShowString(0, 2, "                ");
+                OLED_ShowString(0, 4, "                ");
             
             OLED_ShowString(0, 0, "ISO14443A:");
             OLED_ShowString(0, 2, tempData);
@@ -138,6 +146,8 @@ void ComAnticoll()
             DelayMs(100);
             BEEP = 1;
         }
+        TimerCount = 0;
+        clsFlag = 0;
 	}
 	else
 	{
@@ -191,7 +201,8 @@ void ComTypeBRst()
                 
                 // 清空原有数据
                 OLED_ShowString(0, 0, "          ");
-                OLED_ShowString(0, 2, "                    ");
+                OLED_ShowString(0, 2, "                ");
+                OLED_ShowString(0, 4, "                ");
                 
                 OLED_ShowString(0, 0, "ISO14443B:");
                 OLED_ShowString(0, 2, tempData);
@@ -200,6 +211,8 @@ void ComTypeBRst()
                 DelayMs(100);
                 BEEP = 1;
             }
+            TimerCount = 0;
+            clsFlag = 0;
         }
 	}
 	else
@@ -246,7 +259,8 @@ void ComISO15693_Inventory16()
                 
                 // 清空原有数据
                 OLED_ShowString(0, 0, "          ");
-                OLED_ShowString(0, 2, "                    ");
+                OLED_ShowString(0, 2, "                ");
+                OLED_ShowString(0, 4, "                ");
                 
                 OLED_ShowString(0, 0, "ISO15693: ");
                 OLED_ShowString(0, 2, tempData);
@@ -255,6 +269,8 @@ void ComISO15693_Inventory16()
                 DelayMs(100);
                 BEEP = 1;
             }
+            TimerCount = 0;
+            clsFlag = 0;
         }
 	}
 	else
@@ -301,7 +317,8 @@ void ComISO15693_Inventory()
                 
                 // 清空原有数据
                 OLED_ShowString(0, 0, "          ");
-                OLED_ShowString(0, 2, "                    ");
+                OLED_ShowString(0, 2, "                ");
+                OLED_ShowString(0, 4, "                ");
                 
                 OLED_ShowString(0, 0, "ISO15693: ");
                 OLED_ShowString(0, 2, tempData);
@@ -310,6 +327,8 @@ void ComISO15693_Inventory()
                 DelayMs(100);
                 BEEP = 1;
             }
+            TimerCount = 0;
+            clsFlag = 0;
         }
 	}
 	else
@@ -358,5 +377,14 @@ void main()
         ComISO15693_Inventory16();
         ComISO15693_Inventory();
         DelayMs(10);
+        
+        if ((clsFlag == 1) && (lastCardCode[0] != 0))
+        {
+            OLED_Clear();
+            showPower();
+            OLED_ShowTitleChinese();
+            clsFlag = 0;
+            lastCardCode[0] = 0;
+        }
     }
 }

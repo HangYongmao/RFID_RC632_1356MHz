@@ -179,3 +179,19 @@ void OLED_ShowHardCodeChinese()
     OLED_ShowCHinese(48, 2, 3, HardCode);
     OLED_ShowCHinese(64, 2, 4, HardCode);
 }
+
+void OLED_ShowTitleChinese()
+{
+    OLED_ShowCHinese(00, 2, 0, Title);
+    OLED_ShowCHinese(16, 2, 1, Title);
+    OLED_ShowCHinese(32, 2, 2, Title);
+    OLED_ShowCHinese(48, 2, 3, Title);
+    OLED_ShowString(64, 2, "13.56MHz");
+    OLED_ShowCHinese(00, 4, 4, Title);
+    OLED_ShowCHinese(16, 4, 5, Title);
+    OLED_ShowString(32, 4, "RFID");
+    OLED_ShowCHinese(64, 4, 6, Title);
+    OLED_ShowCHinese(80, 4, 7, Title);
+    OLED_ShowCHinese(96, 4, 8, Title);
+    OLED_ShowCHinese(112, 4, 9, Title);
+}
