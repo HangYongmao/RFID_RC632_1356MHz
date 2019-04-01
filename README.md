@@ -1,2 +1,6 @@
 # RFID_1356MHz
 多协议的13.56MHz频段RFID系统设计-基于CLRC632芯片
+
+使用模块为 CLRC632
+
+![CLRC632](./Doc/CLRC632.png)
